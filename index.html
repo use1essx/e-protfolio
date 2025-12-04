@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hayden_Ho @ System:~$</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --term-main: #00ff41;
+            /* Main Green */
+            --term-dim: #008F11;
+            --term-cursor: #00ff41;
+            --font-stack: 'Courier New', Courier, monospace;
+        }
+
+        /* --- THEMES --- */
+        body.theme-amber {
+            --term-main: #ffb000;
+            --term-dim: #996a00;
+            --term-cursor: #ffb000;
+        }
+
+        body.theme-blue {
+            --term-main: #00bfff;
+            --term-dim: #005f7f;
+            --term-cursor: #00bfff;
+        }
+
+        body.theme-red {
+            --term-main: #ff3333;
+            --term-dim: #880000;
+            --term-cursor: #ff3333;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--term-main);
+            font-family: var(--font-stack);
+            font-size: 16px;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-shadow: 0 0 2px rgba(0, 255, 65, 0.4);
+            /* Subtle CRT Glow */
+        }
+
+        /* CRT Scanlines */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(to bottom,
+                    rgba(255, 255, 255, 0),
+                    rgba(255, 255, 255, 0) 50%,
+                    rgba(0, 0, 0, 0.2) 50%,
+                    rgba(0, 0, 0, 0.2));
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .interface-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            height: 95vh;
+            border: 1px solid var(--term-dim);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            background-color: rgba(13, 17, 23, 0.95);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- SIDEBAR & GLITCH EFFECT --- */
+        .profile-sidebar {
+            width: 300px;
+            border-right: 1px solid var(--term-dim);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            flex-shrink: 0;
+            background-color: rgba(0, 20, 0, 0.3);
+            transition: border-color 0.5s;
+        }
+
+        .profile-img-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            margin-bottom: 25px;
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--term-main);
+            object-fit: cover;
+            box-shadow: 0 0 15px var(--term-dim);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Glitch Animation Keyframes */
+        @keyframes glitch-anim {
+            0% {
+                clip-path: inset(10% 0 80% 0);
+                transform: translate(-2px, 1px);
+            }
+
+            20% {
+                clip-path: inset(80% 0 10% 0);
+                transform: translate(2px, -1px);
+            }
+
+            40% {
+                clip-path: inset(40% 0 50% 0);
+                transform: translate(-2px, 2px);
+            }
+
+            60% {
+                clip-path: inset(10% 0 60% 0);
+                transform: translate(2px, -2px);
+            }
+
+            80% {
+                clip-path: inset(30% 0 20% 0);
+                transform: translate(-1px, 1px);
+            }
+
+            100% {
+                clip-path: inset(10% 0 80% 0);
+                transform: translate(1px, -1px);
+            }
+        }
+
+        .profile-img.glitching {
+            animation: glitch-anim 0.3s cubic-bezier(.25, .46, .45, .94) both infinite;
+            filter: invert(1);
+        }
+
+        .profile-stats {
+            text-align: left;
+            width: 100%;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* --- TERMINAL AREA --- */
+        #terminal-container {
+            flex-grow: 1;
+            height: 100%;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            scroll-behavior: smooth;
+        }
+
+        #terminal-container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        #terminal-container::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+
+        #terminal-container::-webkit-scrollbar-thumb {
+            background: var(--term-dim);
+            border: 1px solid var(--term-main);
+        }
+
+        .output-line {
+            margin-bottom: 5px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            opacity: 0;
+            /* Hidden by default for animation */
+            animation: fadein 0.1s forwards;
+        }
+
+        @keyframes fadein {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .command-line {
+            display: flex;
+            /* Hidden initially */
+            align-items: center;
+            margin-top: 10px;
+            padding-bottom: 20px;
+            opacity: 0;
+        }
+
+        .prompt {
+            color: var(--term-main);
+            margin-right: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        #cmd-input {
+            background: transparent;
+            border: none;
+            color: var(--term-main);
+            font-family: var(--font-stack);
+            font-size: 16px;
+            flex-grow: 1;
+            outline: none;
+            caret-color: var(--term-cursor);
+            text-transform: lowercase;
+        }
+
+        /* Utility Classes */
+        .text-dim {
+            color: var(--term-dim);
+            filter: brightness(1.5);
+        }
+
+        .text-white {
+            color: #fff;
+        }
+
+        .text-yellow {
+            color: #f1c40f;
+        }
+
+        .text-blue {
+            color: #3498db;
+        }
+
+        .highlight {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+        a {
+            color: var(--term-main);
+            text-decoration: none;
+            border-bottom: 1px dashed var(--term-main);
+        }
+
+        a:hover {
+            background-color: var(--term-main);
+            color: var(--bg-color);
+        }
+
+        /* Enhanced ASCII Art */
+        .ascii-art {
+            font-size: 10px;
+            line-height: 10px;
+            margin-bottom: 20px;
+            color: var(--term-dim);
+            white-space: pre;
+            font-weight: bold;
+            filter: brightness(1.2);
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .interface-wrapper {
+                flex-direction: column;
+                height: 100vh;
+                border: none;
+            }
+
+            .profile-sidebar {
+                width: 100%;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid var(--term-dim);
+                flex-direction: row;
+                padding: 15px;
+            }
+
+            .profile-img-container {
+                width: 70px;
+                height: 70px;
+                margin-bottom: 0;
+                margin-right: 20px;
+            }
+
+            .ascii-art {
+                font-size: 6px;
+                line-height: 6px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .ascii-art {
+                font-size: 12px;
+                line-height: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="scanlines"></div>
+
+    <div class="interface-wrapper">
+        <!-- SIDEBAR -->
+        <aside class="profile-sidebar">
+            <div class="profile-img-container">
+                <img src="" class="profile-img" id="myProfilePic" alt="Profile Photo" referrerpolicy="no-referrer"
+                    onerror="this.src='https://ui-avatars.com/api/?name=Hayden+Ho&background=0D1117&color=00ff41&size=256&bold=true'">
+            </div>
+
+            <div class="profile-stats">
+                <div class="text-white highlight" style="margin-bottom: 10px;">IDENTITY CARD</div>
+                <div><span class="text-yellow">NAME:</span> HO KAI HEI</div>
+                <div><span class="text-yellow">ID:</span> HAYDEN</div>
+                <br>
+                <div><span class="text-dim">STATUS:</span> <span
+                        style="color:var(--term-main); animation: blink 2s infinite">ONLINE</span></div>
+                <div><span class="text-dim">IP:</span> 192.168.0.1</div>
+                <div><span class="text-dim">ROLE:</span> ADMIN</div>
+                <div><span class="text-dim">LOC:</span> HONG KONG</div>
+            </div>
+        </aside>
+
+        <!-- TERMINAL -->
+        <div id="terminal-container" onclick="focusInput()">
+            <div id="boot-sequence"></div>
+            <div id="history"></div>
+            <div class="command-line" id="input-line">
+                <span class="prompt">guest@hayden-server:~$</span>
+                <input type="text" id="cmd-input" autocomplete="off" spellcheck="false">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- SYSTEM CONFIGURATION ---
+        const systemConfig = {
+            profilePhotoUrl: "profile.jpg"
+        };
+
+        const database = {
+            'about': `
+<span class="text-white">USER PROFILE: Ho Kai Hei (Hayden)</span>
+----------------------------------------
+<span class="text-yellow">ROLE:</span> Year 2 Student, Higher Diploma in Cloud and Data Centre Administration
+<span class="text-yellow">LOCATION:</span> Hong Kong
+<span class="text-yellow">OBJECTIVE:</span> Aspiring Cloud Infrastructure Engineer.
+
+<span class="text-dim">SELF-INTRODUCTION:</span>
+My name is Ho Kai Hei (Hayden), and I am currently pursuing a Higher Diploma in 
+Cloud and Data Centre Administration. My passion lies in the intersection of 
+robust infrastructure and modern AI applications. 
+
+Unlike many in this field, my background is unique: I am a qualified <span class="text-term-main">Lifeguard 
+and Swimming Teacher</span>. This experience has forged my ability to stay calm under 
+extreme pressure, manage critical responsibilities, and ensure safety—skills 
+that are surprisingly transferable to managing high-stakes Data Centre operations. 
+I am eager to apply this disciplined mindset to designing secure, scalable 
+cloud environments.
+`,
+            'skills': `
+<span class="text-white">COMPETENCY MATRIX</span>
+----------------------------------------
+<span class="text-yellow">1. TECHNICAL COMPETENCY (Cloud & Infra)</span>
+   > <span class="text-white">Networking:</span> Proficient in WAN/LAN routing, VLAN configuration, and 
+     network security protocols (based on Packet Tracer labs).
+   > <span class="text-white">System Admin:</span> Hands-on experience with Linux server management and 
+     virtualization technologies.
+
+<span class="text-yellow">2. PROBLEM SOLVING & AI</span>
+   > <span class="text-white">Self-Learning:</span> Demonstrated ability to learn new stacks (AWS Bedrock, 
+     Python) rapidly during hackathons without prior coursework.
+   > <span class="text-white">AI Integration:</span> Experience deploying LLMs (Large Language Models) 
+     for practical use cases like healthcare automation.
+
+<span class="text-yellow">3. SOFT SKILLS (Responsibility & Discipline)</span>
+   > <span class="text-white">Crisis Management:</span> Trained to handle emergencies and make split-second 
+     decisions through professional lifeguarding.
+   > <span class="text-white">Communication:</span> Experience teaching students requires clear instruction 
+     and patience, useful for team collaboration in IT.
+`,
+            'projects': `
+<span class="text-white">PROJECT REPOSITORY</span>
+----------------------------------------
+<span class="text-yellow">1. PROJECT HIYORI (AI Health Care Agent)</span>
+   <span class="text-dim">CONTEXT:</span> AWS AI Hackathon Hong Kong
+   <span class="text-dim">ROLE:</span>    <span class="text-term-main">Cloud Architect & Lead Developer</span>
+   <span class="text-dim">STACK:</span>   AWS Bedrock (AI), AWS Lambda (Serverless), Python
+   <span class="text-dim">DESC:</span>    Hiyori is an AI agent designed to assist users with preliminary 
+            health queries. 
+            
+            <span class="text-white">MY CONTRIBUTION:</span>
+            I was responsible for designing the cloud architecture. I integrated 
+            AWS Bedrock to handle natural language processing and wrote the 
+            Python logic on AWS Lambda to ensure the system was serverless 
+            and scalable. This required me to self-learn these tools within 
+            48 hours.
+   <span class="text-dim">LINK:</span>    <a href="https://github.com/use1essx/Hiyori---Your-Health-Care-Agent" target="_blank">github.com/use1essx/Hiyori</a>
+
+<span class="text-yellow">2. NETWORK INFRASTRUCTURE LABS</span>
+   <span class="text-dim">ROLE:</span>    <span class="text-term-main">Network Engineer (Student)</span>
+   <span class="text-dim">DESC:</span>    A series of complex Packet Tracer simulations designed to mimic 
+            real-world enterprise networks.
+            
+            <span class="text-white">MY CONTRIBUTION:</span>
+            Designed topologies implementing VLANs for security segmentation 
+            and OSPF for dynamic routing. Successfully troubleshooted 
+            connectivity issues to ensure 99.9% simulation uptime.
+`,
+            'certs': `
+<span class="text-white">VERIFIED CREDENTIALS</span>
+----------------------------------------
+<span class="text-dim">Type: SAFETY & RESPONSIBILITY</span>
+
+<span class="text-yellow">[PASS]</span> Aquatic First Aid Cert        <a href="https://drive.google.com/file/d/1fs1XuwVEi4kUI6Z4CTDXxhkj28B97jkM/view?usp=drive_link" target="_blank">[VIEW FILE]</a>
+<span class="text-yellow">[PASS]</span> Beach Lifeguard Award         <a href="https://drive.google.com/file/d/1FjFFBiOpTd9e6Nb1TLuV-xWA61crNfDA/view?usp=drive_link" target="_blank">[VIEW FILE]</a>
+<span class="text-yellow">[PASS]</span> Reg. Exam Leader / Teacher    <a href="https://drive.google.com/file/d/1zo-oYxqJEx8meIVxXx1E2tbzFEiLDIPF/view?usp=drive_link" target="_blank">[VIEW FILE]</a>
+<span class="text-yellow">[PASS]</span> Pool Lifeguard Award          <a href="https://drive.google.com/file/d/1Go0T9xRAV8ptBwacCuvP37w2CTZiWIbr/view?usp=drive_link" target="_blank">[VIEW FILE]</a>
+<span class="text-yellow">[PASS]</span> Swimming Teacher Cert         <a href="https://drive.google.com/file/d/1SFaymhIlPUtsuK-eKVGL0wkfdkY1NKgB/view?usp=drive_link" target="_blank">[VIEW FILE]</a>
+
+<span class="text-dim">SYSTEM NOTE:</span> 
+These qualifications serve as evidence of high discipline, responsibility, 
+and the ability to follow strict safety protocols—essential traits for 
+Data Centre administration.
+`,
+            'career': `
+<span class="text-white">CAREER GOAL & PLAN</span>
+----------------------------------------
+<span class="text-yellow">CAREER GOAL STATEMENT:</span>
+"As a dedicated student pursuing a Higher Diploma in Cloud and Data Centre 
+Administration, I am committed to harnessing my technical knowledge in 
+infrastructure and my disciplined mindset to become a <span class="text-term-main">Cloud Infrastructure Engineer</span>. 
+My ultimate goal is to design and implement scalable, efficient, and secure 
+cloud architectures that drive business innovation."
+
+<span class="text-yellow">ACTION PLAN (Steps to Reach Goal):</span>
+<span class="text-dim">Phase 1: Foundation (Current - 1 Year)</span>
+> Finish HD with Distinction to build strong academic backing.
+> Gain fundamental certs: AWS Cloud Practitioner & LPIC-1 (Linux).
+
+<span class="text-dim">Phase 2: Practical Application (1 - 3 Years)</span>
+> Secure an internship or Junior role at a Data Centre / NOC.
+> Apply AI skills to automate routine server maintenance tasks.
+> Build a portfolio of "Infrastructure as Code" projects (Terraform/Ansible).
+
+<span class="text-dim">Phase 3: Specialization (3 - 5 Years)</span>
+> Advance to Cloud Engineer or Site Reliability Engineer (SRE).
+> Obtain professional cert: AWS Certified Solutions Architect.
+
+<span class="text-yellow">SKILL ACQUISITION STRATEGY:</span>
+<span class="text-dim">SKILL           | LEARNING METHOD         | TIMEFRAME</span>
+----------------------------------------------------
+Adv. Linux      | Home Lab & LPIC-1 Book  | 6 Months
+Container (K8s) | Udemy Course & Project  | 1 Year
+DevOps (CI/CD)  | Hackathon Participation | 1.5 Years
+`,
+            'contact': `
+<span class="text-white">COMMUNICATION CHANNELS</span>
+----------------------------------------
+<span class="text-dim">EMAIL:</span>  [Enter Your Email Here]
+<span class="text-dim">GITHUB:</span> <a href="https://github.com/use1essx" target="_blank">github.com/use1essx</a>
+<span class="text-dim">LINKEDIN:</span> <a href="https://www.linkedin.com/in/kai-hei-hayden-ho-a38834326/" target="_blank">linkedin.com/in/kai-hei-hayden-ho</a>
+`,
+            'help': `
+<span class="text-white">AVAILABLE COMMANDS:</span>
+----------------------------------------
+<span class="text-yellow">about</span>     - View profile summary
+<span class="text-yellow">skills</span>    - List technical competencies
+<span class="text-yellow">projects</span>  - View GitHub/School projects
+<span class="text-yellow">certs</span>     - View certificates & awards
+<span class="text-yellow">career</span>    - View professional roadmap
+<span class="text-yellow">contact</span>   - Contact information
+<span class="text-yellow">theme</span>     - Change color (e.g., 'theme red', 'theme blue')
+<span class="text-yellow">clear</span>     - Clear terminal screen
+<span class="text-yellow">all</span>       - Run all diagnostic checks
+`
+        };
+
+        // --- BETTER ASCII ART (BLOCK STYLE) ---
+        const asciiHeader = `
+<div class="ascii-art">
+██╗  ██╗ █████╗ ██╗   ██╗██████╗ ███████╗███╗   ██╗
+██║  ██║██╔══██╗╚██╗ ██╔╝██╔══██╗██╔════╝████╗  ██║
+███████║███████║ ╚████╔╝ ██║  ██║█████╗  ██╔██╗ ██║
+██╔══██║██╔══██║  ╚██╔╝  ██║  ██║██╔══╝  ██║╚██╗██║
+██║  ██║██║  ██║   ██║   ██████╔╝███████╗██║ ╚████║
+╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚══════╝╚═╝  ╚═══╝
+                                             
+ SYSTEM ONLINE... V2.0.4
+ AUTHENTICATED USER: GUEST
+</div>
+<div class="output-line">Welcome to Hayden's E-Profile.</div>
+<div class="output-line">Type <span class="text-yellow">'help'</span> to view available commands.</div>
+<br>
+`;
+
+        // --- SYSTEM VARIABLES ---
+        const input = document.getElementById('cmd-input');
+        const history = document.getElementById('history');
+        const container = document.getElementById('terminal-container');
+        const inputLine = document.getElementById('input-line');
+        const bootLog = document.getElementById('boot-sequence');
+        const profilePic = document.getElementById('myProfilePic');
+
+        // --- BOOT SEQUENCE LOGIC ---
+        const bootMessages = [
+            "BIOS CHECK... OK",
+            "LOADING KERNEL... OK",
+            "MOUNTING VOLUMES... OK",
+            "CHECKING PERMISSIONS... ADMIN",
+            "INITIALIZING NETWORK... 192.168.0.1",
+            "LOADING INTERFACE..."
+        ];
+
+        window.onload = async () => {
+            // 1. SETUP PROFILE PHOTO
+            let picUrl = systemConfig.profilePhotoUrl.trim();
+            const fallbackUrl = "https://ui-avatars.com/api/?name=Hayden+Ho&background=0D1117&color=00ff41&size=256&bold=true";
+
+            // Logic to convert Drive Links to Image Links
+            if (picUrl.includes('drive.google.com') && picUrl.includes('/d/')) {
+                // Extract ID
+                const match = picUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if (match && match[1]) {
+                    picUrl = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+                }
+            } else if (picUrl === "") {
+                picUrl = fallbackUrl;
+            }
+            profilePic.src = picUrl;
+
+            // 2. GLITCH EFFECT
+            setInterval(() => {
+                if (Math.random() > 0.95) {
+                    profilePic.classList.add('glitching');
+                    setTimeout(() => profilePic.classList.remove('glitching'), 300);
+                }
+            }, 1000);
+
+            // 3. BOOT SEQUENCE
+            for (let i = 0; i < bootMessages.length; i++) {
+                await new Promise(r => setTimeout(r, 300)); // Delay between lines
+                const div = document.createElement('div');
+                div.className = 'output-line text-dim';
+                div.innerText = `> ${bootMessages[i]}`;
+                bootLog.appendChild(div);
+                container.scrollTop = container.scrollHeight;
+            }
+
+            await new Promise(r => setTimeout(r, 600)); // Final pause
+            bootLog.innerHTML = ""; // Clear boot log
+            history.innerHTML = asciiHeader; // Show main interface
+            inputLine.style.opacity = 1; // Show input
+            input.focus();
+        };
+
+        function focusInput() { input.focus(); }
+
+        function addToHistory(text, isCommand = false) {
+            const div = document.createElement('div');
+            div.className = 'output-line';
+            if (isCommand) {
+                div.innerHTML = `<span class="prompt">guest@hayden-server:~$</span> ${text}`;
+            } else {
+                div.innerHTML = text;
+            }
+            history.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function processCommand(cmd) {
+            const command = cmd.toLowerCase().trim();
+            if (command === '') return;
+            addToHistory(cmd, true);
+
+            // Special Commands
+            if (command.startsWith('theme')) {
+                const theme = command.split(' ')[1];
+                document.body.className = ''; // Reset
+                if (theme === 'red') document.body.classList.add('theme-red');
+                else if (theme === 'blue') document.body.classList.add('theme-blue');
+                else if (theme === 'amber') document.body.classList.add('theme-amber');
+                addToHistory(`> THEME UPDATED TO: ${theme ? theme.toUpperCase() : 'DEFAULT'}`);
+                return;
+            }
+
+            if (command === 'help') {
+                addToHistory(database['help']);
+            } else if (command === 'clear') {
+                history.innerHTML = asciiHeader;
+            } else if (command === 'all') {
+                addToHistory("RUNNING FULL DIAGNOSTICS...", false);
+                addToHistory(database['about']);
+                addToHistory(database['skills']);
+                addToHistory(database['projects']);
+                addToHistory(database['certs']);
+                addToHistory(database['career']);
+            } else if (database[command]) {
+                addToHistory(database[command]);
+            } else {
+                addToHistory(`<span class="text-dim">Command not found: '${command}'. Type 'help'.</span>`);
+            }
+        }
+
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                const cmd = this.value;
+                this.value = '';
+                processCommand(cmd);
+            }
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const current = this.value.toLowerCase();
+                const availableCmds = ['about', 'skills', 'projects', 'certs', 'career', 'contact', 'help', 'theme', 'clear', 'all'];
+                const match = availableCmds.find(c => c.startsWith(current));
+                if (match) this.value = match;
+            }
+        });
+    </script>
+</body>
+
+</html>
