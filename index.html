@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,31 +7,16 @@
     <style>
         :root {
             --bg-color: #0d1117;
-            --term-main: #00ff41;
-            /* Main Green */
+            --term-main: #00ff41; /* Main Green */
             --term-dim: #008F11;
             --term-cursor: #00ff41;
             --font-stack: 'Courier New', Courier, monospace;
         }
 
         /* --- THEMES --- */
-        body.theme-amber {
-            --term-main: #ffb000;
-            --term-dim: #996a00;
-            --term-cursor: #ffb000;
-        }
-
-        body.theme-blue {
-            --term-main: #00bfff;
-            --term-dim: #005f7f;
-            --term-cursor: #00bfff;
-        }
-
-        body.theme-red {
-            --term-main: #ff3333;
-            --term-dim: #880000;
-            --term-cursor: #ff3333;
-        }
+        body.theme-amber { --term-main: #ffb000; --term-dim: #996a00; --term-cursor: #ffb000; }
+        body.theme-blue { --term-main: #00bfff; --term-dim: #005f7f; --term-cursor: #00bfff; }
+        body.theme-red { --term-main: #ff3333; --term-dim: #880000; --term-cursor: #ff3333; }
 
         * {
             box-sizing: border-box;
@@ -50,8 +34,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            text-shadow: 0 0 2px rgba(0, 255, 65, 0.4);
-            /* Subtle CRT Glow */
+            text-shadow: 0 0 2px rgba(0, 255, 65, 0.4); /* Subtle CRT Glow */
         }
 
         /* CRT Scanlines */
@@ -61,11 +44,13 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: linear-gradient(to bottom,
-                    rgba(255, 255, 255, 0),
-                    rgba(255, 255, 255, 0) 50%,
-                    rgba(0, 0, 0, 0.2) 50%,
-                    rgba(0, 0, 0, 0.2));
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.2) 50%,
+                rgba(0,0,0,0.2)
+            );
             background-size: 100% 4px;
             pointer-events: none;
             z-index: 10;
@@ -77,7 +62,7 @@
             max-width: 1200px;
             height: 95vh;
             border: 1px solid var(--term-dim);
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 30px rgba(0,0,0, 0.8);
             background-color: rgba(13, 17, 23, 0.95);
             position: relative;
             z-index: 1;
@@ -116,35 +101,12 @@
 
         /* Glitch Animation Keyframes */
         @keyframes glitch-anim {
-            0% {
-                clip-path: inset(10% 0 80% 0);
-                transform: translate(-2px, 1px);
-            }
-
-            20% {
-                clip-path: inset(80% 0 10% 0);
-                transform: translate(2px, -1px);
-            }
-
-            40% {
-                clip-path: inset(40% 0 50% 0);
-                transform: translate(-2px, 2px);
-            }
-
-            60% {
-                clip-path: inset(10% 0 60% 0);
-                transform: translate(2px, -2px);
-            }
-
-            80% {
-                clip-path: inset(30% 0 20% 0);
-                transform: translate(-1px, 1px);
-            }
-
-            100% {
-                clip-path: inset(10% 0 80% 0);
-                transform: translate(1px, -1px);
-            }
+            0% { clip-path: inset(10% 0 80% 0); transform: translate(-2px, 1px); }
+            20% { clip-path: inset(80% 0 10% 0); transform: translate(2px, -1px); }
+            40% { clip-path: inset(40% 0 50% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(10% 0 60% 0); transform: translate(2px, -2px); }
+            80% { clip-path: inset(30% 0 20% 0); transform: translate(-1px, 1px); }
+            100% { clip-path: inset(10% 0 80% 0); transform: translate(1px, -1px); }
         }
 
         .profile-img.glitching {
@@ -170,37 +132,22 @@
             scroll-behavior: smooth;
         }
 
-        #terminal-container::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        #terminal-container::-webkit-scrollbar-track {
-            background: var(--bg-color);
-        }
-
-        #terminal-container::-webkit-scrollbar-thumb {
-            background: var(--term-dim);
-            border: 1px solid var(--term-main);
-        }
+        #terminal-container::-webkit-scrollbar { width: 10px; }
+        #terminal-container::-webkit-scrollbar-track { background: var(--bg-color); }
+        #terminal-container::-webkit-scrollbar-thumb { background: var(--term-dim); border: 1px solid var(--term-main); }
 
         .output-line {
             margin-bottom: 5px;
             line-height: 1.5;
             white-space: pre-wrap;
-            opacity: 0;
-            /* Hidden by default for animation */
+            opacity: 0; /* Hidden by default for animation */
             animation: fadein 0.1s forwards;
         }
 
-        @keyframes fadein {
-            to {
-                opacity: 1;
-            }
-        }
+        @keyframes fadein { to { opacity: 1; } }
 
         .command-line {
-            display: flex;
-            /* Hidden initially */
+            display: flex; /* Hidden initially */
             align-items: center;
             margin-top: 10px;
             padding-bottom: 20px;
@@ -227,38 +174,14 @@
         }
 
         /* Utility Classes */
-        .text-dim {
-            color: var(--term-dim);
-            filter: brightness(1.5);
-        }
-
-        .text-white {
-            color: #fff;
-        }
-
-        .text-yellow {
-            color: #f1c40f;
-        }
-
-        .text-blue {
-            color: #3498db;
-        }
-
-        .highlight {
-            font-weight: bold;
-            text-decoration: underline;
-        }
-
-        a {
-            color: var(--term-main);
-            text-decoration: none;
-            border-bottom: 1px dashed var(--term-main);
-        }
-
-        a:hover {
-            background-color: var(--term-main);
-            color: var(--bg-color);
-        }
+        .text-dim { color: var(--term-dim); filter: brightness(1.5); }
+        .text-white { color: #fff; }
+        .text-yellow { color: #f1c40f; }
+        .text-blue { color: #3498db; }
+        .highlight { font-weight: bold; text-decoration: underline; }
+        
+        a { color: var(--term-main); text-decoration: none; border-bottom: 1px dashed var(--term-main); }
+        a:hover { background-color: var(--term-main); color: var(--bg-color); }
 
         /* Enhanced ASCII Art */
         .ascii-art {
@@ -266,50 +189,24 @@
             line-height: 10px;
             margin-bottom: 20px;
             color: var(--term-dim);
-            white-space: pre;
+            white-space: pre; 
             font-weight: bold;
             filter: brightness(1.2);
         }
 
         /* Mobile */
         @media (max-width: 768px) {
-            .interface-wrapper {
-                flex-direction: column;
-                height: 100vh;
-                border: none;
-            }
-
-            .profile-sidebar {
-                width: 100%;
-                height: auto;
-                border-right: none;
-                border-bottom: 1px solid var(--term-dim);
-                flex-direction: row;
-                padding: 15px;
-            }
-
-            .profile-img-container {
-                width: 70px;
-                height: 70px;
-                margin-bottom: 0;
-                margin-right: 20px;
-            }
-
-            .ascii-art {
-                font-size: 6px;
-                line-height: 6px;
-            }
+            .interface-wrapper { flex-direction: column; height: 100vh; border: none; }
+            .profile-sidebar { width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--term-dim); flex-direction: row; padding: 15px; }
+            .profile-img-container { width: 70px; height: 70px; margin-bottom: 0; margin-right: 20px; }
+            .ascii-art { font-size: 6px; line-height: 6px; } 
         }
-
+        
         @media (min-width: 768px) {
-            .ascii-art {
-                font-size: 12px;
-                line-height: 12px;
-            }
+            .ascii-art { font-size: 12px; line-height: 12px; }
         }
     </style>
 </head>
-
 <body>
 
     <div class="scanlines"></div>
@@ -318,17 +215,20 @@
         <!-- SIDEBAR -->
         <aside class="profile-sidebar">
             <div class="profile-img-container">
-                <img src="" class="profile-img" id="myProfilePic" alt="Profile Photo" referrerpolicy="no-referrer"
-                    onerror="this.src='https://ui-avatars.com/api/?name=Hayden+Ho&background=0D1117&color=00ff41&size=256&bold=true'">
+                <img src="" 
+                     class="profile-img" 
+                     id="myProfilePic" 
+                     alt="Profile Photo"
+                     referrerpolicy="no-referrer"
+                     onerror="this.src='https://ui-avatars.com/api/?name=Hayden+Ho&background=0D1117&color=00ff41&size=256&bold=true'">
             </div>
-
+            
             <div class="profile-stats">
                 <div class="text-white highlight" style="margin-bottom: 10px;">IDENTITY CARD</div>
                 <div><span class="text-yellow">NAME:</span> HO KAI HEI</div>
                 <div><span class="text-yellow">ID:</span> HAYDEN</div>
                 <br>
-                <div><span class="text-dim">STATUS:</span> <span
-                        style="color:var(--term-main); animation: blink 2s infinite">ONLINE</span></div>
+                <div><span class="text-dim">STATUS:</span> <span style="color:var(--term-main); animation: blink 2s infinite">ONLINE</span></div>
                 <div><span class="text-dim">IP:</span> 192.168.0.1</div>
                 <div><span class="text-dim">ROLE:</span> ADMIN</div>
                 <div><span class="text-dim">LOC:</span> HONG KONG</div>
@@ -349,14 +249,14 @@
     <script>
         // --- SYSTEM CONFIGURATION ---
         const systemConfig = {
-            profilePhotoUrl: "profile.jpg"
+            profilePhotoUrl: "profile.jpg" 
         };
 
         const database = {
             'about': `
 <span class="text-white">USER PROFILE: Ho Kai Hei (Hayden)</span>
 ----------------------------------------
-<span class="text-yellow">ROLE:</span> Year 2 Student, Higher Diploma in Cloud and Data Centre Administration
+<span class="text-yellow">ROLE:</span> Year 2 Student, Cloud & Data Centre Admin
 <span class="text-yellow">LOCATION:</span> Hong Kong
 <span class="text-yellow">OBJECTIVE:</span> Aspiring Cloud Infrastructure Engineer.
 
@@ -373,25 +273,29 @@ I am eager to apply this disciplined mindset to designing secure, scalable
 cloud environments.
 `,
             'skills': `
-<span class="text-white">COMPETENCY MATRIX</span>
+<span class="text-white">PERSONAL COMPETENCY</span>
 ----------------------------------------
 <span class="text-yellow">1. TECHNICAL COMPETENCY (Cloud & Infra)</span>
    > <span class="text-white">Networking:</span> Proficient in WAN/LAN routing, VLAN configuration, and 
-     network security protocols (based on Packet Tracer labs).
+     network security protocols.
+     <span class="text-dim">[EVIDENCE: Network Labs]</span>
    > <span class="text-white">System Admin:</span> Hands-on experience with Linux server management and 
      virtualization technologies.
 
 <span class="text-yellow">2. PROBLEM SOLVING & AI</span>
    > <span class="text-white">Self-Learning:</span> Demonstrated ability to learn new stacks (AWS Bedrock, 
      Python) rapidly during hackathons without prior coursework.
+     <span class="text-dim">[EVIDENCE: Project Hiyori]</span>
    > <span class="text-white">AI Integration:</span> Experience deploying LLMs (Large Language Models) 
      for practical use cases like healthcare automation.
 
 <span class="text-yellow">3. SOFT SKILLS (Responsibility & Discipline)</span>
    > <span class="text-white">Crisis Management:</span> Trained to handle emergencies and make split-second 
      decisions through professional lifeguarding.
+     <span class="text-dim">[EVIDENCE: Lifeguard Awards]</span>
    > <span class="text-white">Communication:</span> Experience teaching students requires clear instruction 
      and patience, useful for team collaboration in IT.
+     <span class="text-dim">[EVIDENCE: Swimming Teacher Cert]</span>
 `,
             'projects': `
 <span class="text-white">PROJECT REPOSITORY</span>
@@ -471,7 +375,7 @@ DevOps (CI/CD)  | Hackathon Participation | 1.5 Years
             'contact': `
 <span class="text-white">COMMUNICATION CHANNELS</span>
 ----------------------------------------
-<span class="text-dim">EMAIL:</span>  [Enter Your Email Here]
+<span class="text-dim">EMAIL:</span>  hokaiheihayden@gmail.com
 <span class="text-dim">GITHUB:</span> <a href="https://github.com/use1essx" target="_blank">github.com/use1essx</a>
 <span class="text-dim">LINKEDIN:</span> <a href="https://www.linkedin.com/in/kai-hei-hayden-ho-a38834326/" target="_blank">linkedin.com/in/kai-hei-hayden-ho</a>
 `,
@@ -545,7 +449,7 @@ DevOps (CI/CD)  | Hackathon Participation | 1.5 Years
 
             // 2. GLITCH EFFECT
             setInterval(() => {
-                if (Math.random() > 0.95) {
+                if(Math.random() > 0.95) {
                     profilePic.classList.add('glitching');
                     setTimeout(() => profilePic.classList.remove('glitching'), 300);
                 }
@@ -560,7 +464,7 @@ DevOps (CI/CD)  | Hackathon Participation | 1.5 Years
                 bootLog.appendChild(div);
                 container.scrollTop = container.scrollHeight;
             }
-
+            
             await new Promise(r => setTimeout(r, 600)); // Final pause
             bootLog.innerHTML = ""; // Clear boot log
             history.innerHTML = asciiHeader; // Show main interface
@@ -609,6 +513,7 @@ DevOps (CI/CD)  | Hackathon Participation | 1.5 Years
                 addToHistory(database['projects']);
                 addToHistory(database['certs']);
                 addToHistory(database['career']);
+                addToHistory(database['contact']); // Added contact here
             } else if (database[command]) {
                 addToHistory(database[command]);
             } else {
@@ -616,7 +521,7 @@ DevOps (CI/CD)  | Hackathon Participation | 1.5 Years
             }
         }
 
-        input.addEventListener('keydown', function (e) {
+        input.addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
                 const cmd = this.value;
                 this.value = '';
@@ -632,5 +537,4 @@ DevOps (CI/CD)  | Hackathon Participation | 1.5 Years
         });
     </script>
 </body>
-
 </html>
